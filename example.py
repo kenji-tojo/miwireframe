@@ -28,8 +28,8 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('--obj', default='./data/bunny_8k.obj', help='path to the input obj file')
     parser.add_argument('--envmap', default='./data/envmap/envmap2.exr', help='path to the envmap file')
-    parser.add_argument('--resy', type=int, default=256, help='vertical image resolution')
-    parser.add_argument('--spp', type=int, default=32, help='# of samples per pixel')
+    parser.add_argument('--resy', type=int, default=512, help='vertical image resolution')
+    parser.add_argument('--spp', type=int, default=16, help='# of samples per pixel')
     parser.add_argument('--max_depth', type=int, default=3, help='maxnum number of ray scattering')
     args = parser.parse_args()
 
@@ -47,7 +47,7 @@ if __name__ == '__main__':
     v, _, _, f, _, _ = igl.read_obj(args.obj)
     l = igl.avg_edge_length(v, f)
 
-    v, f = remesh_botsch(v, f, h=l*3.)
+    v, f = remesh_botsch(v, f, h=l*2.)
     e, _, _, _ = igl.edge_flaps(f)
 
     assert np.all(e >= 0)
@@ -60,19 +60,30 @@ if __name__ == '__main__':
     diag = np.linalg.norm(bbox[1]-bbox[0]).item(0)
 
 
-    target = bbox.mean(axis=0)
+    cam_target = bbox.mean(axis=0)
+    cam_distance = 1.4 * diag
 
-    theta = (3/8) * math.pi
-    x = 0.
-    y = math.cos(theta)
-    z = math.sin(theta)
+    origin = []
+    target = []
+    up = []
 
-    origin = target + 1.4 * diag * np.array([x, y, z])
-    up = np.array([0., 1., 0.])
+    num_views = 3
+    for i in range(num_views):
+        theta = (3/8) * math.pi
+        phi = 2. * math.pi * i / num_views
 
-    target = target[None, ...]
-    origin = origin[None, ...]
-    up = up[None, ...]
+        x = math.sin(theta) * math.sin(phi)
+        y = math.cos(theta)
+        z = math.sin(theta) * math.cos(phi)
+
+        origin.append(cam_target + cam_distance * np.array([x, y, z]))
+        target.append(cam_target)
+
+        up.append(np.array([0., 1., 0.]))
+
+    origin = np.concatenate(origin, axis=0).reshape(-1,3)
+    target = np.concatenate(target, axis=0).reshape(-1,3)
+    up = np.concatenate(up, axis=0).reshape(-1,3)
 
     B, _ = origin.shape
     H = args.resy
@@ -123,8 +134,7 @@ if __name__ == '__main__':
     mesh.add_attribute("vertex_color", 3, np.random.rand(mesh.vertex_count() * 3).tolist())
 
     mesh.write_ply(mesh_path)
-
-    serialize_curves(wire_path, v, wire_p, wire_s, .1 * l)
+    serialize_curves(wire_path, v, wire_p, wire_s, radius=.1 * l)
 
     shape = mi.load_dict({
         "type": "ply",
