@@ -22,6 +22,12 @@ def serialize_curves(fname, v, wire_p, wire_s, radius):
             data += '\n'
             f.write(data)
 
+def serialize_edges(fname, v, e, radius):
+    with open(fname, 'w') as f:
+      for ip0, ip1 in e:
+        f.write(f'{v[ip0,0]} {v[ip0,1]} {v[ip0,2]} {radius}\n')
+        f.write(f'{v[ip1,0]} {v[ip1,1]} {v[ip1,2]} {radius}\n\n')
+
 
 if __name__ == '__main__':
     from argparse import ArgumentParser
@@ -31,6 +37,7 @@ if __name__ == '__main__':
     parser.add_argument('--resy', type=int, default=512, help='vertical image resolution')
     parser.add_argument('--spp', type=int, default=16, help='# of samples per pixel')
     parser.add_argument('--max_depth', type=int, default=3, help='maxnum number of ray scattering')
+    parser.add_argument('--segments', action='store_true', help='render maximul segments')
     args = parser.parse_args()
 
 
@@ -49,9 +56,6 @@ if __name__ == '__main__':
 
     v, f = remesh_botsch(v, f, h=l*2.)
     e, _, _, _ = igl.edge_flaps(f)
-
-    assert np.all(e >= 0)
-    wire_p, wire_s = wf.maximal_segments(len(v), e)
 
     mi.set_variant('cuda_ad_rgb', 'llvm_ad_rgb')
 
@@ -124,7 +128,17 @@ if __name__ == '__main__':
     mesh.add_attribute("vertex_color", 3, np.random.rand(mesh.vertex_count() * 3).tolist())
 
     mesh.write_ply(mesh_path)
-    serialize_curves(wire_path, v, wire_p, wire_s, radius=.1 * l)
+
+
+
+    assert np.all(e >= 0)
+
+    if args.segments:
+        wire_p, wire_s = wf.maximal_segments(len(v), e)
+        serialize_curves(wire_path, v, wire_p, wire_s, radius=.1 * l)
+    else:
+        serialize_edges(wire_path, v, e, radius=.1 * l)
+
 
     shape = mi.load_dict({
         "type": "ply",
