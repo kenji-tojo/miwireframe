@@ -95,7 +95,7 @@ if __name__ == '__main__':
 
     emitter = mi.load_dict({ 'type': 'envmap', 'filename': args.envmap })
 
-    ply_path = os.path.join(output_dir, 'mesh.ply')
+    mesh_path = os.path.join(output_dir, 'mesh.ply')
     wire_path = os.path.join(output_dir, 'wire.txt')
 
     def serialize_wire(fname, v, wire_p, wire_s, radius):
@@ -122,13 +122,13 @@ if __name__ == '__main__':
     params["faces"] = f.ravel().tolist()
     mesh.add_attribute("vertex_color", 3, np.random.rand(mesh.vertex_count() * 3).tolist())
 
-    mesh.write_ply(ply_path)
+    mesh.write_ply(mesh_path)
 
     serialize_curves(wire_path, v, wire_p, wire_s, .1 * l)
 
     shape = mi.load_dict({
         "type": "ply",
-        "filename": ply_path,
+        "filename": mesh_path,
         "face_normals": True,
         "bsdf": {
             'type': 'twosided',
@@ -168,15 +168,20 @@ if __name__ == '__main__':
     color = mi.render(scene, spp=args.spp).numpy()
     color = np.ascontiguousarray(color.reshape(H, B, W, 4).transpose((1, 0, 2, 3)))
 
-    color = color[..., :3] * color[..., 3:] + 1. * (1.-color[..., 3:])
+    rgb = color[..., :3]
+    alpha = color[..., 3:]
+    background = 1.
+
+    color = rgb * alpha + background * (1. - alpha)
     color = np.clip(color, a_min=0, a_max=None)
 
     color = np.power(color, 1.0/2.2)
 
-    img = color[0]
-    img = np.clip(np.rint(img * 255), 0, 255).astype(np.uint8)
-    imageio.imsave(os.path.join(output_dir, f'wireframe.png'), img)
+    for i in range(len(color)):
+        img = color[i]
+        img = np.clip(np.rint(img * 255), 0, 255).astype(np.uint8)
+        imageio.imsave(os.path.join(output_dir, f'wireframe_{i}.png'), img)
 
-    os.remove(ply_path)
+    os.remove(mesh_path)
     os.remove(wire_path)
 

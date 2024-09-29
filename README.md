@@ -25,3 +25,6 @@ Now, you are ready to run
 ```
 python ./example.py
 ```
+to render images into ```./output``` folder.
+
+Please just ignore error messages when the program shut down.
