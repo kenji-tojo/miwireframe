@@ -69,6 +69,14 @@ void extend_segment(int v, const std::vector<int> &v2e, const std::vector<int> &
     } while (v_pre != v);
 }
 
+/**
+ * Compute a set of maximal paths from a set of edges.
+ * @param vertex_count: a positive integer.
+ * @param edge_count: a positive integer.
+ * @param edges: array of edge indices with shape (edge_count, 2).
+ * @param vertex_indices: output array of point indices with shape (edge_count * 2,).
+ * @param segment_indices: output array of starting indices with shape (edge_count,).
+ */
 void maximal_segments(int vertex_count, int edge_count, const int *edges,
                       int *vertex_indices, int *segment_indices)
 {

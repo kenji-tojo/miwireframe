@@ -109,16 +109,6 @@ if __name__ == '__main__':
     mesh_path = os.path.join(output_dir, 'mesh.ply')
     wire_path = os.path.join(output_dir, 'wire.txt')
 
-    def serialize_wire(fname, v, wire_p, wire_s, radius):
-        s = wire_s.tolist() + [ len(wire_p) ]
-        with open(fname, 'w') as f:
-            for i in range(len(s)-1):
-                data = ''
-                for ip in wire_p[s[i]: s[i+1]]:
-                    data += f'{v[ip,0]} {v[ip,1]} {v[ip,2]} {radius}\n'
-                data += '\n'
-                f.write(data)
-
 
     mesh = mi.Mesh(
         "mesh",
