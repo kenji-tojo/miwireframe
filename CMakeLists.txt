@@ -30,7 +30,7 @@ list(APPEND CMAKE_PREFIX_PATH "${_tmp_dir}")
 # Now import nanobind from CMake
 find_package(nanobind CONFIG REQUIRED)
 
-nanobind_add_module(wireframecore NOMINSIZE src/main.cpp)
+nanobind_add_module(core NOMINSIZE src/core.cpp)
 
-install(TARGETS wireframecore LIBRARY DESTINATION .)
+install(TARGETS core LIBRARY DESTINATION .)
 

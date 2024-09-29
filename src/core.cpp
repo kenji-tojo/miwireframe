@@ -149,7 +149,7 @@ void maximal_segments(int vertex_count, TensorXN<int, 2> edges, TensorX<int> ver
 } // namespace
 
 
-NB_MODULE(wireframecore, m)
+NB_MODULE(core, m)
 {
     m.def("maximal_segments", &::maximal_segments);
 }

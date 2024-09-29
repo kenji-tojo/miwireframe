@@ -6,6 +6,6 @@ Wireframe mesh rendering examples using [Mitsuba renderer](https://www.mitsuba-r
 ## Tested environment
 - Python 3.12.5
 
-## Installation
-
 ## Dependencies
+
+## Installation
