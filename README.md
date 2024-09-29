@@ -18,7 +18,7 @@ Then, run
 ```
 pip3 install .
 ```
-to build the utility module.
+to build the utility module in ```./src```.
 
 ## Running the code
 Now, you are ready to run
