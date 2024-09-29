@@ -9,7 +9,7 @@ from gpytoolbox import remesh_botsch
 import drjit as dr
 import mitsuba as mi
 
-import miwireframe as wire
+import miwireframe as wf
 
 
 def serialize_curves(fname, v, wire_p, wire_s, radius):
@@ -26,8 +26,8 @@ def serialize_curves(fname, v, wire_p, wire_s, radius):
 if __name__ == '__main__':
     from argparse import ArgumentParser
     parser = ArgumentParser()
-    parser.add_argument('--obj', default='./assets/bunny_8k.obj', help='path to the input obj file')
-    parser.add_argument('--envmap', default='./assets/envmap/envmap2.exr', help='path to the envmap file')
+    parser.add_argument('--obj', default='./data/bunny_8k.obj', help='path to the input obj file')
+    parser.add_argument('--envmap', default='./data/envmap/envmap2.exr', help='path to the envmap file')
     parser.add_argument('--resy', type=int, default=256, help='vertical image resolution')
     parser.add_argument('--spp', type=int, default=32, help='# of samples per pixel')
     parser.add_argument('--max_depth', type=int, default=3, help='maxnum number of ray scattering')
@@ -51,8 +51,7 @@ if __name__ == '__main__':
     e, _, _, _ = igl.edge_flaps(f)
 
     assert np.all(e >= 0)
-
-    wire_p, wire_s = wire.topology.maximal_segments(len(v), e)
+    wire_p, wire_s = wf.maximal_segments(len(v), e)
 
     mi.set_variant('cuda_ad_rgb', 'llvm_ad_rgb')
 
@@ -144,7 +143,7 @@ if __name__ == '__main__':
             }
         })
 
-    wire = mi.load_dict({
+    curves = mi.load_dict({
         'type': 'linearcurve',
         'filename': wire_path,
         "bsdf": {
@@ -159,9 +158,10 @@ if __name__ == '__main__':
     scene = mi.load_dict({
         "type": "scene",
         "integrator": { "type": "path", "max_depth": args.max_depth, "hide_emitters": True },
+        # "integrator": { "type": "path", "max_depth": args.max_depth },
         "sensor": sensor,
         "shape": shape,
-        "wire": wire,
+        "wire": curves,
         "emitter": emitter
         })
 
